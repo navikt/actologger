@@ -1,0 +1,27 @@
+# Binaries
+/actologger
+/bin/
+/dist/
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+
+# Local scan artifacts
+manifest.json
+results.json
+state.json
+
+# Vendor directory
+/vendor/
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+
+  workflow_dispatch: # Manual trigger from GitHub UI
+
+permissions:
+  contents: read
+
+concurrency:
+  # PRs: group by branch → new push cancels old run
+  # Main: unique per commit → every merge gets tested
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.head_ref) || format('ci-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-test-vet:
+    name: Build, test, and vet
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # ratchet:actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Build
+        run: make build
+
+      - name: Test
+        run: make test
+
+      - name: Test with race detector
+        run: go test -race ./...
+
+      - name: Vet
+        run: go vet ./...
